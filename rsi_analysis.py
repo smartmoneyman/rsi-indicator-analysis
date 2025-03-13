@@ -1,7 +1,8 @@
 import requests
 import pandas as pd
+import os
 
-API_KEY = 'YOUR_API_KEY'
+API_KEY = os.getenv('FMP_API_KEY')
 BASE_URL = 'https://financialmodelingprep.com/api/v3'
 
 # Файл с тикерами
@@ -15,12 +16,9 @@ timeframes = {
     '5min': {'ma_length': 100, 'rsi_length': 200, 'interval': '5min'}
 }
 
-# Получаем тикеры из файла
 def load_tickers(filename):
     with open(filename, 'r') as file:
         return [line.strip() for line in file.readlines()]
-
-# Получение данных RSI
 
 def get_rsi(symbol, interval, rsi_length):
     url = f"{BASE_URL}/technical_indicator/{interval}/{symbol}?period={rsi_length}&type=rsi&apikey={API_KEY}"
@@ -31,8 +29,6 @@ def get_rsi(symbol, interval, rsi_length):
             return data[0]['rsi']
     return None
 
-# Получение данных MA для RSI
-
 def get_rsi_ma(symbol, interval, ma_length, rsi_length):
     url = f"{BASE_URL}/technical_indicator/{interval}/{symbol}?period={rsi_length}&type=rsi&apikey={API_KEY}"
     response = requests.get(url)
@@ -42,8 +38,6 @@ def get_rsi_ma(symbol, interval, ma_length, rsi_length):
             rsi_values = [item['rsi'] for item in data[:ma_length]]
             return sum(rsi_values) / len(rsi_values)
     return None
-
-# Основная логика
 
 def analyze_tickers(tickers, timeframes):
     results = []
@@ -66,11 +60,8 @@ def analyze_tickers(tickers, timeframes):
 
     return pd.DataFrame(results)
 
-
 if __name__ == "__main__":
     tickers = load_tickers(tickers_file)
     df_results = analyze_tickers(tickers, timeframes)
     print(df_results)
-
-    # Можно сохранить результат в CSV
     df_results.to_csv('rsi_analysis_results.csv', index=False)
